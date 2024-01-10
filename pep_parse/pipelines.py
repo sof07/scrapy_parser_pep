@@ -1,11 +1,10 @@
-# Define your item pipelines here
-#
-# Don't forget to add your pipeline to the ITEM_PIPELINES setting
-# See: https://docs.scrapy.org/en/latest/topics/item-pipeline.html
+import datetime as dt
+import os
 
-
-# useful for handling different item types with a single interface
-from itemadapter import ItemAdapter
+BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+RESULT_DIR = 'results'
+FILE_NAME = 'status_summary'
+DATETIME_FORMAT = '%Y-%m-%d_%H-%M-%S'
 
 
 class PepParsePipeline:
@@ -19,10 +18,11 @@ class PepParsePipeline:
         return item
 
     def close_spider(self, spider):
-        with open('./pep.csv', mode='w', encoding='utf-8') as f:
-            # Записываем строки в csv-файл. Колонки разделяются запятой, без пробелов.
+        now = dt.datetime.now()
+        file_name = f'{FILE_NAME}_{now.strftime(DATETIME_FORMAT)}.csv'
+        result = os.path.join(BASE_DIR, RESULT_DIR, file_name)
+        with open(result, mode='w', encoding='utf-8') as f:
             f.write('Статус,Количество\n')
             for key, value in self.count_status.items():
                 f.write(f'{key},{value}\n')
-            # Здесь цикл с записью данных в файл.
             f.write(f'Total,{sum(self.count_status.values())}\n')
