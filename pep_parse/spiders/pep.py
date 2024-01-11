@@ -19,12 +19,14 @@ class PepSpider(scrapy.Spider):
 
     def parse_pep(self, response):
         pep_title = response.css('h1.page-title::text').get()
-        # У меня все норм, сплитим по этому знаку: – (всю голову сломал, почему сплит
-        # не работает, оказалось это длинный минус:))
+        # У меня все норм, сплитим по этому знаку: –
+        # (всю голову сломал, почему сплит не работает,
+        # оказалось это длинный минус:))
         pep_number, pep_name = pep_title.split('–', 1)
         data = {'number': pep_number.replace('PEP', '').strip(),
                 'name': pep_name.strip(),
-                # Да, в подсказке так писано: 'dt:contains("Status") + dd::text'
+                # Да, в подсказке так писано:
+                # 'dt:contains("Status") + dd::text'
                 # Но зачем, если по тегу abbr текст можно достать?
                 # Да и не работает у меня так, ничегоне находит
                 'status': response.css('abbr::text').get()}
