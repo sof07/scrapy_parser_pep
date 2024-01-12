@@ -11,23 +11,17 @@ class PepSpider(scrapy.Spider):
     start_urls = ['https://peps.python.org/']
 
     def parse(self, response):
-        all_peps = response.css('a[href^="pep-"]')
-        for group in all_peps:
-            # Тут я не понял, вроде все нормально отрабатывает без /
-            url_group = urljoin(response.url, group.attrib["href"])
-            yield response.follow(url_group, callback=self.parse_pep)
+        section_tag = response.css('section[id="numerical-index"]')
+        tbody_tag = section_tag.css('tbody')
+        href_tags = tbody_tag.css('a::attr(href)').getall()
+        for href in href_tags:
+            url = href + '/'
+            yield response.follow(url, callback=self.parse_pep)
 
     def parse_pep(self, response):
         pep_title = response.css('h1.page-title::text').get()
-        # У меня все норм, сплитим по этому знаку: –
-        # (всю голову сломал, почему сплит не работает,
-        # оказалось это длинный минус:))
         pep_number, pep_name = pep_title.split('–', 1)
         data = {'number': pep_number.replace('PEP', '').strip(),
                 'name': pep_name.strip(),
-                # Да, в подсказке так писано:
-                # 'dt:contains("Status") + dd::text'
-                # Но зачем, если по тегу abbr текст можно достать?
-                # Да и не работает у меня так, ничегоне находит
                 'status': response.css('abbr::text').get()}
         yield PepParseItem(data)
